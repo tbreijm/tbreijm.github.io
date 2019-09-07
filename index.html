@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>BrixMS</title>
+	</head>
+	
+	<script src="/brixms.js"></script>
+	<script src="/output.js"></script>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<body>
+		<ol id="list", start="0">
+		</ol>
+	</body>
+	<script>
+		$.getJSON("/definition.json", function(data) {
+			simulate(data);
+		});
+	</script>
+</html>

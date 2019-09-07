@@ -1,0 +1,63 @@
+{
+	"structures": [
+		{ "name": "gate", "maxValue": 25 },
+		{ "name": "traveller-1", "location": 0, "speed": 1 },
+		{ "name": "autowalk-1", "start": 1, "end": 10, "speed": 1}
+	],
+	"roles": [
+		{
+			"name": "limiter", "attributes": [
+				{ "name": "maxValue"}
+			]
+		},
+		{ 
+			"name": "mover", "attributes": [
+				{ "name": "speed" },
+				{ "name": "start" },
+				{ "name": "end" }
+			]
+		},
+		{ 
+			"name": "movable", "attributes": [
+				{ "name": "speed"},
+				{ "name": "location", "writable": true}
+			]
+		}
+	],
+	"behaviours": [
+		{
+			"name": "move",
+			"roles": ["mover", "movable"],
+			"action": "movable.location += mover.speed"
+		},
+		{
+			"name": "self-move",
+			"roles": ["movable"],
+			"action": "movable.location += movable.speed"
+		}
+	],
+	"constraints": [
+		{
+			"name": "on",
+			"roles": ["mover", "movable"],
+			"condition": "mover.start <= movable.location && movable.location < mover.end"
+		},
+		{
+			"name": "move until",
+			"roles": ["movable", "limiter"],
+			"condition": "movable.location < limiter.maxValue"
+		}
+	],
+	"interactions": [
+		{
+			"name": "moving",
+			"constraints": ["on", "move until"],
+			"behaviours": ["move"]
+		},
+		{
+			"name": "self-movement",
+			"constraints": ["move until"],
+			"behaviours": ["self-move"]
+		}
+	]
+}
