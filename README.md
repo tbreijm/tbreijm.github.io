@@ -1,2 +1,2 @@
-# tbreijm.github.io
-BrixMS
+# BrixMS
+Modelling and simulation with context independent brix
