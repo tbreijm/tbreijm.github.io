@@ -172,12 +172,18 @@
 				});
 			}
 
+			const functions = {
+				count: function(name) {
+					return [...model.structures.keys()].filter(k => k.startsWith(name)).length
+				}
+			}
+
 			function finePhase(events) {
 				return events.filter(event => 
 					event.interaction.constraints.every(function(c) {
 						const constraint = model.constraints.get(c);
-						return new Function(constraint.roles, `return ${constraint.condition};`)(
-							... constraint.roles.map(role => 
+						return new Function("{count}", ...constraint.roles, `return ${constraint.condition};`)(
+							functions, ... constraint.roles.map(role => 
 								applyImmutableRole(model.structures.get(event.assignment.get(role)), 
 									model.roles.get(role))
 							)
@@ -195,13 +201,26 @@
 		}
 
 		function execute(model, event) {
+			const functions = {
+				count: function(name) {
+					return [...model.structures.keys()].filter(k => k.startsWith(name)).length
+				},
+				create: function(name, attributes) {
+					const count = [...model.structures.keys()].filter(k => k.startsWith(name)).length;
+					const structureName = `${name}-${count}`;
+					const structure = deepCopy(attributes);
+					structure["name"] = structureName;
+					model.structures.set(structureName, structure);
+				}
+			}
+
 			event.interaction.behaviours.map(function(b) {
 				const behaviour = model.behaviours.get(b);
 				const values = behaviour.roles.map(role => applyMutableRole(
 					model.structures.get(event.assignment.get(role)), 
 					model.roles.get(role)));
 
-				new Function(behaviour.roles, `${behaviour.action};`)(... values)
+				new Function("{count, create}", ...behaviour.roles, `${behaviour.action};`)(functions, ... values)
 
 				behaviour.roles.forEach(function(role, index){
 					const value = values[index];
@@ -264,8 +283,8 @@
 		const definition = {
 			structures: [
 				{ name: "gate", maxValue: 25 },
-				{ name: "autowalk-1", start: 1, end: 10, speed: 1 },
-				{ name: "traveller-1", location: 0, speed: 1 },
+				{ name: "autowalk", start: 1, end: 10, speed: 1 },
+				{ name: "travellers", attributes: { location: 0, speed: 2 }, structureName: "traveller", limit: 5 },
 			],
 			roles: [
 				{
@@ -285,6 +304,13 @@
 						{ name: "speed"},
 						{ name: "location", writable: true}
 					]
+				},
+				{
+					name: "generator", attributes: [
+						{ name: "structureName"},
+						{ name: "attributes"},
+						{ name: "limit"}
+					]
 				}
 			],
 			behaviours: [
@@ -297,6 +323,11 @@
 					name: "self-move",
 					roles: ["movable"],
 					action: "movable.location += movable.speed"
+				},
+				{
+					name: "generate",
+					roles: ["generator"],
+					action: "create(generator.structureName, generator.attributes)"
 				}
 			],
 			constraints: [
@@ -309,6 +340,11 @@
 					name: "move until",
 					roles: ["movable", "limiter"],
 					condition: "movable.location < limiter.maxValue"
+				},
+				{
+					name: "generate until",
+					roles: ["generator"],
+					condition: "count(generator.structureName) < generator.limit"
 				}
 			],
 			interactions: [
@@ -321,6 +357,11 @@
 					name: "self-movement",
 					constraints: ["move until"],
 					behaviours: ["self-move"]
+				},
+				{
+					name: "generating",
+					constraints: ["generate until"],
+					behaviours: ["generate"]
 				}
 			]
 		};
