@@ -1,8 +1,8 @@
 {
 	"structures": [
 		{ "name": "gate", "maxValue": 25 },
-		{ "name": "traveller-1", "location": 0, "speed": 1 },
-		{ "name": "autowalk-1", "start": 1, "end": 10, "speed": 1}
+		{ "name": "autowalk", "start": 1, "end": 10, "speed": 1},
+		{ "name": "travellers", "attributes": { "location": 0, "speed": 2 }, "structureName": "traveller", "limit": 5 },
 	],
 	"roles": [
 		{
@@ -22,6 +22,13 @@
 				{ "name": "speed"},
 				{ "name": "location", "writable": true}
 			]
+		},
+		{
+			name: "generator", "attributes": [
+				{ "name": "structureName"},
+				{ "name": "attributes"},
+				{ "name": "limit"}
+			]
 		}
 	],
 	"behaviours": [
@@ -34,6 +41,11 @@
 			"name": "self-move",
 			"roles": ["movable"],
 			"action": "movable.location += movable.speed"
+		},
+		{
+			"name": "generate",
+			"roles": ["generator"],
+			"action": "create(generator.structureName, generator.attributes)"
 		}
 	],
 	"constraints": [
@@ -46,6 +58,11 @@
 			"name": "move until",
 			"roles": ["movable", "limiter"],
 			"condition": "movable.location < limiter.maxValue"
+		},
+		{
+			"name": "generate until",
+			"roles": ["generator"],
+			"condition": "count(generator.structureName) < generator.limit"
 		}
 	],
 	"interactions": [
@@ -58,6 +75,11 @@
 			"name": "self-movement",
 			"constraints": ["move until"],
 			"behaviours": ["self-move"]
+		},
+		{
+			"name": "generating",
+			"constraints": ["generate until"],
+			"behaviours": ["generate"]
 		}
 	]
 }
