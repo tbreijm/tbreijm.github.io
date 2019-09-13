@@ -24,7 +24,7 @@
 			]
 		},
 		{
-			name: "generator", "attributes": [
+			"name": "generator", "attributes": [
 				{ "name": "structureName"},
 				{ "name": "attributes"},
 				{ "name": "limit"}
