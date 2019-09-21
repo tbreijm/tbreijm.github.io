@@ -1,17 +1,35 @@
 function simulate(definition) {
 	const model = build(definition);
-	var events = detect(model);
+	output({model});
+
+	const functions = {
+		count: function(name) {
+			return [...model.structures.keys()].filter(k => k.startsWith(name)).length
+		},
+		create: function(name, attributes) {
+			const count = [...model.structures.keys()].filter(k => k.startsWith(name)).length;
+			const structureName = `${name}-${count}`;
+			const structure = deepCopy(attributes);
+			structure["name"] = structureName;
+			model.structures.set(structureName, structure);
+		},
+		remove: function(name) {
+			model.structures.delete(name);
+		}
+	};
+
+	var events = detect(model, functions);
 
 	while (events.length > 0) {
 		events.forEach(event => {
-			execute(model, event)
+			execute(model, functions, event)
 			output({model, event});
 		})
-		events = detect(model);
+		events = detect(model, functions);
 	}
 }
 
-function detect(model) {
+function detect(model, functions) {
 	function index(roles, structures) {
 		function isSubset(subset, set) {
 			return [...subset].every(k => set.has(k));
@@ -57,17 +75,11 @@ function detect(model) {
 		});
 	}
 
-	const functions = {
-		count: function(name) {
-			return [...model.structures.keys()].filter(k => k.startsWith(name)).length
-		}
-	}
-
 	function finePhase(events) {
 		return events.filter(event => 
 			event.interaction.constraints.every(function(c) {
 				const constraint = model.constraints.get(c);
-				return new Function("{count}", ...constraint.roles, `return ${constraint.condition};`)(
+				return new Function("{count, create, remove}", ...constraint.roles, `return ${constraint.condition};`)(
 					functions, ... constraint.roles.map(role => 
 						applyImmutableRole(model.structures.get(event.assignment.get(role)), 
 							model.roles.get(role))
@@ -85,27 +97,14 @@ function detect(model) {
 	})
 }
 
-function execute(model, event) {
-	const functions = {
-		count: function(name) {
-			return [...model.structures.keys()].filter(k => k.startsWith(name)).length
-		},
-		create: function(name, attributes) {
-			const count = [...model.structures.keys()].filter(k => k.startsWith(name)).length;
-			const structureName = `${name}-${count}`;
-			const structure = deepCopy(attributes);
-			structure["name"] = structureName;
-			model.structures.set(structureName, structure);
-		}
-	}
-
+function execute(model, functions, event) {
 	event.interaction.behaviours.map(function(b) {
 		const behaviour = model.behaviours.get(b);
 		const values = behaviour.roles.map(role => applyMutableRole(
 			model.structures.get(event.assignment.get(role)), 
 			model.roles.get(role)));
 
-		new Function("{count, create}", ...behaviour.roles, `${behaviour.action};`)(functions, ... values)
+		new Function("{count, create, remove}", ...behaviour.roles, `${behaviour.action};`)(functions, ... values)
 
 		behaviour.roles.forEach(function(role, index){
 			const value = values[index];
@@ -116,6 +115,11 @@ function execute(model, event) {
 				}
 			})
 		})
+
+		const removal = values.map((value, i) => [model.structures.get(event.assignment.get(behaviour.roles[i])), value.deactivated])
+			.filter(([s, t]) => t)
+			.map(([s, t]) => s.name);
+		removal.forEach(s => model.structures.delete(s));
 	})
 }
 

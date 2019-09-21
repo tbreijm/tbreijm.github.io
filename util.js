@@ -18,6 +18,8 @@ function applyMutableRole(structure, role) {
 		return (typeof value !== "function" && typeof value !== "object")
 	}
 
+	addProperty("deactivated", false, true);
+
 	for (let a of role.attributes) {
 		const value = structure[a.name];
 
