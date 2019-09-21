@@ -1,18 +1,29 @@
 {
 	"structures": [
-		{ "name": "employee-0", "communications": 0},
-		{ "name": "employee-1", "communications": 0},
+		{ "name": "employee-0", "id": 0, "communications": 0},
+		{ "name": "employee-1", "id": 1, "communications": 0},
+		{ "name": "experiment", "p": 0.5, "limit": 10 }
 	],
 	"roles": [
 		{
 			"name": "sender", "attributes": [
-				{ "name": "FTE" },
+				{ "name": "id" }
 			]
 		},
 		{
 			"name": "receiver", "attributes": [
-				{ "name": "FTE" },
-				{ "name": "emails", "writable": true }
+				{ "name": "id" },
+				{ "name": "communications", "writable": true }
+			]
+		},
+		{
+			"name": "constants", "attributes": [
+				{ "name": "p" }
+			]
+		},
+		{
+			"name": "limiter", "attributes": [
+				{ "name": "limit" }
 			]
 		}
 	],
@@ -25,15 +36,20 @@
 	],
 	"constraints": [
 		{
-			"name": "send limit",
+			"name": "can send",
+			"roles": ["sender", "receiver", "constants", "limiter"],
+			"condition": "(Math.random() < constants.p) ? (receiver.emails < limiter.limit) : false"
+		},
+		{
+			"name": "no self comms",
 			"roles": ["sender", "receiver"],
-			"condition": "(Math.random() < 0.5) ? (receiver.emails < 10) : false"
+			"condition": "sender.id != receiver.id"
 		}
 	],
 	"interactions": [
 		{
 			"name": "communication",
-			"constraints": ["send limit"],
+			"constraints": ["no self comms", "can send"],
 			"behaviours": ["send"]
 		}
 	]
