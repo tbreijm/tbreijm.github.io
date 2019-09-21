@@ -1,13 +1,42 @@
 const timeline = new TimelineMax();
 const structures = new Set();
 
-function output({model, event}) {
-	console.log(event);
-	console.log(model);
+const boxes = new Map([
+	["employee-0", {width: 200, height: 200, x: 700, y: 300}],
+	["employee", {width: 200, height: 200, x: 1200, y: 300}],
+	["communication-forward", {width: 50, height: 50, x: 775, y: 275}],
+	["communication-backward", {width: 50, height: 50, x: 1275, y: 275}],
+	["play", {width: "5%", height: "5%", x: "5%", y: "90%"}]
+])
 
+function buildPlayer() {
+	timeline.add("player");
+
+	const play = image("playerButton", "play", boxes.get("play"), images.play);
+	document.getElementById("canvas").appendChild(play);
+	play.addEventListener("click", play, false);
+	play.handleEvent = function(event) {
+		switch (event.type){
+			case "click":
+				timeline.play("loaded");
+				break;
+		}
+	}
+
+	timeline.staggerTo(".playerButton", 0.5, {attr: {opacity: 1}, onComplete: function() {
+		console.log("player loaded");
+		timeline.add("loaded").pause();
+		$.getJSON("/definition.json", function(data) {
+			simulate(data);
+		});
+	}}, 0.1);
+}
+
+function output({model, event}) {
 	if (event) {
 		cleanUp(model);
 		initialise(model);
+		effect(event);
 		modify(model);
 
 		structures.clear();
@@ -33,10 +62,19 @@ function initialise(model) {
 		.forEach(function(key) {
 			const structure = model.structures.get(key);
 
-			if (structure.name.startsWith("autowalk")) {
-				addAutowalk(structure);
-			} else if (structure.name.startsWith("traveller-")) {
-				addTraveller(structure);
+			structures.add(key);
+
+			var img;
+
+			if (key === "employee-0") {
+				img = image("employee", structure.name, boxes.get("employee-0"), images.person);
+			} else if (key.startsWith("employee-")) {
+				img = image("employee", structure.name, boxes.get("employee"), images.person);
+			}
+
+			if (img) {
+				document.getElementById("canvas").appendChild(img);
+				timeline.to(img, 0.5, {attr: {opacity: 1}});
 			}
 		});
 }
@@ -47,39 +85,22 @@ function modify(model) {
 	keys.forEach(function(key) {
 		const structure = model.structures.get(key);
 
-		if (structure.name.startsWith("traveller-")) {
-			moveTraveller(structure);
+		if (key.startsWith("employee-")) {
+			// set text of employee to structure.communications
 		}
 	});
 }
 
-function addAutowalk(autowalk) {
-	const rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-	rect.setAttribute("id", autowalk.name);
-	rect.setAttribute("x", autowalk.start * 100);
-	rect.setAttribute("y", 600);
-	rect.setAttribute("width", (autowalk.end - autowalk.start) * 100);
-	rect.setAttribute("height", 10);
-	rect.setAttribute("fill", "black");
+function effect(event) {
+	if (event.interaction.name == "communication") {
+		const senderId = event.assignment.get("sender");
+		const forward = (senderId == "employee-0");
 
-	document.getElementById("canvas").appendChild(rect);
-	structures.add(autowalk.name);
-}
-
-function addTraveller(traveller) {
-	const rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-	rect.setAttribute("id", traveller.name);
-	rect.setAttribute("x", traveller.location * 100);
-	rect.setAttribute("y", 540);
-	rect.setAttribute("width", 10);
-	rect.setAttribute("height", 50);
-	rect.setAttribute("fill", "black");
-
-	document.getElementById("canvas").appendChild(rect);
-	structures.add(traveller.name);
-	timeline.add(traveller.name, "-="+timeline.time());
-}
-
-function moveTraveller(traveller) {
-	timeline.to($(`#${traveller.name}`), 5, {x:traveller.location * 100}, traveller.name);
+		const box = boxes.get(forward ? "communication-forward" : "communication-backward");
+		const img = image(`communication`, "communication", box, images.communication);
+		document.getElementById("canvas").appendChild(img);
+		timeline.to(img, 0.5, {attr: {opacity: 1}})
+		.to(img, 0.5, {attr: boxes.get(!forward ? "communication-forward" : "communication-backward")})
+		.to(img, 0.5, {attr: {opacity: 0}, onComplete: function() {}});
+	}
 }

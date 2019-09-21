@@ -11,13 +11,16 @@ html, body {
 	width:90%;
 	border: 1px solid #cccccc;
 }
-#play {
+.title {
 	font-family: Helvetica, sans-serif;
 	font-size: 144;
 	text-anchor: middle;
 }
-#play circle {
+#brixms circle {
 	fill:none;
 	stroke: black;
 	stroke-width:2;
+}
+#play polygon {
+	pointer-events: bounding-box;
 }

@@ -1,11 +1,11 @@
 function intro() {
 	const timeline = new TimelineMax({paused:true, onComplete:start});
 
-	timeline.to($("#play"), 0.5, {
+	timeline.to($("#brixms"), 0.5, {
 		autoAlpha: 0, 
 		ease: Back.easeOut,
 		onComplete: function () {
-			$("#play").remove();
+			$("#brixms").remove();
 
 			timeline.add("circles");
 
@@ -52,7 +52,5 @@ function intro() {
 }
 
 function start() {
-	$.getJSON("/definition.json", function(data) {
-		simulate(data);
-	});
+	buildPlayer();
 }
