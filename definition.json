@@ -2,7 +2,7 @@
 	"structures": [
 		{ "name": "employee-0", "id": 0, "communications": 0},
 		{ "name": "employee-1", "id": 1, "communications": 0},
-		{ "name": "experiment", "p": 0.5, "limit": 10 }
+		{ "name": "experiment", "p": 0.8, "limit": 3 }
 	],
 	"roles": [
 		{
@@ -38,7 +38,7 @@
 		{
 			"name": "can send",
 			"roles": ["sender", "receiver", "constants", "limiter"],
-			"condition": "(Math.random() < constants.p) ? (receiver.emails < limiter.limit) : false"
+			"condition": "(Math.random() < constants.p) ? (receiver.communications < limiter.limit) : false"
 		},
 		{
 			"name": "no self comms",

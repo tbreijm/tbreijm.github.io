@@ -2,6 +2,9 @@ const timeline = new TimelineMax();
 const structures = new Set();
 
 function output({model, event}) {
+	console.log(event);
+	console.log(model);
+
 	if (event) {
 		cleanUp(model);
 		initialise(model);

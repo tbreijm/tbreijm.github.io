@@ -64,7 +64,7 @@ function detect(model, functions) {
 		const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
 
 		const lists = roles.map(r => [... roleStructuresMap.get(r)]);
-		return events = cartesian(... lists).map(function(product) {
+		return cartesian(... lists).map(function(product) {
 			const structures = [product].flat();
 
 			return {
@@ -76,6 +76,8 @@ function detect(model, functions) {
 	}
 
 	function finePhase(events) {
+		console.log(events);
+
 		return events.filter(event => 
 			event.interaction.constraints.every(function(c) {
 				const constraint = model.constraints.get(c);
@@ -84,7 +86,7 @@ function detect(model, functions) {
 						applyImmutableRole(model.structures.get(event.assignment.get(role)), 
 							model.roles.get(role))
 					)
-				)
+				);
 			})
 		);
 	}
