@@ -68,6 +68,7 @@ class Player {
 	load() {
 		$('#canvas').empty();
 		this.canvas.appendChild(this.playButton());
+		this.canvas.appendChild(this.slider());
 		this.timeline.to("#play", 0.5, {attr: {opacity: 1}});
 	}
 
@@ -83,6 +84,17 @@ class Player {
 		return pause;
 	}
 
+	slider() {
+		const slider = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		slider.setAttribute('x', '10%');
+		slider.setAttribute('width', '80%');
+		slider.setAttribute('y', '92%');
+		slider.setAttribute('height', '10');
+		slider.setAttribute('fill', '#cccccc');
+
+		return slider;
+	}
+
 	playEvents(event) {
 		const self = this;
 
@@ -92,6 +104,7 @@ class Player {
 			$('#canvas').empty();
 			self.structures.clear();
 			self.canvas.appendChild(self.pauseButton());
+			self.canvas.appendChild(self.slider());
 			self.timeline.add("loaded");
 			self.timeline.play("loaded");
 			simulate(data);
