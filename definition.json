@@ -2,7 +2,7 @@
 	"structures": [
 		{ "name": "employee-0", "id": 0, "communications": 0},
 		{ "name": "employee-1", "id": 1, "communications": 0},
-		{ "name": "experiment", "p": 0.8, "limit": 30 }
+		{ "name": "experiment", "p": 0.8, "limit": 3 }
 	],
 	"roles": [
 		{

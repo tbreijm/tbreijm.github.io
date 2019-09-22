@@ -1,6 +1,6 @@
 function simulate(definition) {
 	const model = build(definition);
-	output({model});
+	player.init(model);
 
 	const functions = {
 		count: function(name) {
@@ -23,10 +23,12 @@ function simulate(definition) {
 	while (events.length > 0) {
 		events.forEach(event => {
 			execute(model, functions, event)
-			output({model, event});
+			player.schedule(model, event);
 		})
 		events = detect(model, functions);
 	}
+
+	player.stop();
 }
 
 function detect(model, functions) {
