@@ -52,5 +52,5 @@ function intro() {
 }
 
 function start() {
-	buildPlayer();
+	player();
 }

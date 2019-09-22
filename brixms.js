@@ -76,8 +76,6 @@ function detect(model, functions) {
 	}
 
 	function finePhase(events) {
-		console.log(events);
-
 		return events.filter(event => 
 			event.interaction.constraints.every(function(c) {
 				const constraint = model.constraints.get(c);

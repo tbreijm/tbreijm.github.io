@@ -1,4 +1,32 @@
 const images = {
+	calendar: {
+		style: {
+			fill:"#cccccc",
+			stroke:"none",
+			opacity: 0
+		},
+		viewBox: "0 0 58 58",
+		paths: [
+			'M42.899,4.5c-0.465-2.279-2.484-4-4.899-4c-0.552,0-1,0.447-1,1s0.448,1,1,1c1.654,0,3,1.346,3,3s-1.346,3-3,3c-0.552,0-1,0.447-1,1s0.448,1,1,1c2.414,0,4.434-1.721,4.899-4H56v9H2v-9h14h3c0.552,0,1-0.447,1-1s-0.448-1-1-1h-1.816c0.414-1.162,1.514-2,2.816-2c1.654,0,3,1.346,3,3s-1.346,3-3,3c-0.552,0-1,0.447-1,1s0.448,1,1,1c2.757,0,5-2.243,5-5s-2.243-5-5-5c-2.414,0-4.434,1.721-4.899,4H0v13v40h58v-40v-13H42.899z M56,55.5H2v-38h54V55.5z',
+			'M26,2.5c1.654,0,3,1.346,3,3s-1.346,3-3,3c-0.552,0-1,0.447-1,1s0.448,1,1,1c2.757,0,5-2.243,5-5s-2.243-5-5-5c-0.552,0-1,0.447-1,1S25.448,2.5,26,2.5z',
+			'M32,2.5c1.654,0,3,1.346,3,3s-1.346,3-3,3c-0.552,0-1,0.447-1,1s0.448,1,1,1c2.757,0,5-2.243,5-5s-2.243-5-5-5c-0.552,0-1,0.447-1,1S31.448,2.5,32,2.5z'
+		],
+		polygons: [],
+		texts: [
+			{
+				value: "0",
+				attributes: {
+					x: "50%",
+					y: "60%"
+				},
+				style: {
+					font: "30px Helvetica, sans serif",
+  					"dominant-baseline": "middle", 
+  					"text-anchor": "middle"
+				}
+			}
+		]
+	},
 	play: {
 		style: {
 			fill:"#cccccc",
@@ -9,19 +37,34 @@ const images = {
 		paths: [],
 		polygons: [
 			"38.25,0 38.25,357 318.75,178.5"
-		]
+		],
+		texts: []
 	},
 	person: {
 		style: {
 			fill:"black",
 			stroke:"none",
-			opacity: 0,
+			opacity: 0
 		},
 		viewBox: "0 0 512 512",
 		paths: [
 			'M437.02,330.98c-27.883-27.882-61.071-48.523-97.281-61.018C378.521,243.251,404,198.548,404,148C404,66.393,337.607,0,256,0S108,66.393,108,148c0,50.548,25.479,95.251,64.262,121.962c-36.21,12.495-69.398,33.136-97.281,61.018C26.629,379.333,0,443.62,0,512h40c0-119.103,96.897-216,216-216s216,96.897,216,216h40C512,443.62,485.371,379.333,437.02,330.98z M256,256c-59.551,0-108-48.448-108-108S196.449,40,256,40c59.551,0,108,48.448,108,108S315.551,256,256,256z'
 		],
-		polygons: []
+		polygons: [],
+		texts: [
+			{
+				value: "0",
+				attributes: {
+					x: "50%",
+					y: "80%"
+				},
+				style: {
+					font: "72px Helvetica, sans serif",
+  					"dominant-baseline": "middle", 
+  					"text-anchor": "middle"
+				}
+			}
+		]
 	},
 	communication: {
 		style: {
@@ -36,30 +79,60 @@ const images = {
 			'm171.292969 211.171875h297.414062v37.5h-297.414062zm0 0',
 			'm171.292969 291.171875h297.414062v37.5h-297.414062zm0 0'
 		],
-		polygons: []
+		polygons: [],
+		texts: []
+	}
+}
+
+const template = {
+	path: {
+		element: "path",
+		attribute: "d"
+	},
+	polygon: {
+		element: "polygon",
+		attribute: "points"
 	}
 }
 
 function image(type, id, box, image) {
+	const parent = svg(id, type, image.viewBox);
+	
+	Object.keys(box).forEach(key => parent.setAttribute(key, box[key]));
+	Object.keys(image.style).forEach(key => parent.setAttribute(key, image.style[key]));
+
+	image.paths.map(data => element(template.path, data)).forEach(element => parent.appendChild(element));
+	image.polygons.map(data => element(template.polygon, data)).forEach(element => parent.appendChild(element));
+	image.texts.flatMap(data => text(id, data)).forEach(element => parent.appendChild(element));
+
+	return parent;
+}
+
+function svg(id, type, viewBox) {
 	const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+	
 	svg.setAttribute("id", id);
 	svg.setAttribute("class", type);
-	svg.setAttribute("viewBox", image.viewBox);
-	
-	Object.keys(box).forEach(key => svg.setAttribute(key, box[key]));
-	Object.keys(image.style).forEach(key => svg.setAttribute(key, image.style[key]));
+	svg.setAttribute("viewBox", viewBox);
 
-	image.paths.map(function(path) {
-		const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-		p.setAttribute("d", path);
-		return p;
-	}).forEach(path => svg.appendChild(path));
-
-	image.polygons.map(function(polygon) {
-		const p = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-		p.setAttribute("points", polygon);
-		return p;
-	}).forEach(polygon => svg.appendChild(polygon));
-	
 	return svg;
+}
+
+function element(template, data) {
+	const element = document.createElementNS('http://www.w3.org/2000/svg', template.element);
+	element.setAttribute(template.attribute, data);
+	return element;
+}
+
+function text(id, data) {
+	const element = document.createElementNS('http://www.w3.org/2000/svg', "text");
+	element.setAttribute("id", `${id}_text`);
+	Object.keys(data.attributes).forEach(key => element.setAttribute(key, data.attributes[key]));
+	element.appendChild(document.createTextNode(data.value));
+
+	const style = document.createElement('style');
+	const css = Object.keys(data.style).map(key => `${key}: ${data.style[key]};`).join("");
+	style.innerHTML = `#${id}_text {${css}}`;
+
+	return [style, element];
 }
