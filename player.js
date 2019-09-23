@@ -123,9 +123,9 @@ class Player {
 		progress.setAttribute('height', '20%');
 		progress.setAttribute('fill', 'black');
 
-		sliderGroup.appendChild(clickable);
 		sliderGroup.appendChild(slider);
 		sliderGroup.appendChild(progress);
+		sliderGroup.appendChild(clickable);
 
 		return sliderGroup;
 	}
