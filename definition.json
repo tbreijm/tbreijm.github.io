@@ -1,7 +1,11 @@
 {
 	"structures": [
-		{ "name": "employee-0", "id": 0, "communications": 0},
-		{ "name": "employee-1", "id": 1, "communications": 0},
+		{ "name": "advisor", "id": 0, "communications": 0},
+		{ "name": "employee-0", "id": 1, "communications": 0},
+		{ "name": "employee-1", "id": 2, "communications": 0},
+		{ "name": "employee-2", "id": 3, "communications": 0},
+		{ "name": "employee-3", "id": 4, "communications": 0},
+		{ "name": "employee-4", "id": 5, "communications": 0},
 		{ "name": "experiment", "p": 0.8, "limit": 3 }
 	],
 	"roles": [

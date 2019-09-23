@@ -4,11 +4,11 @@ class Player {
 		this.structures = new Set();
 
 		this.boxes = new Map([
-			["employee-0", {width: 200, height: 200, x: 700, y: 300}],
-			["employee", {width: 200, height: 200, x: 1200, y: 300}],
-			["communication-forward", {width: 50, height: 50, x: 775, y: 250}],
-			["communication-backward", {width: 50, height: 50, x: 1275, y: 250}],
-			["button", {width: "5%", height: "5%", x: "3%", y: "90%"}]
+			["advisor", {width: '20%', height: '20%', x: '40%', y: '40%'}],
+			["button", {width: "5%", height: "5%", x: "3%", y: "90%"}],
+			["research", {width: "10%", height: "10%", x: "3%", y: "25%"}],
+			["meeting", {width: "10%", height: "10%", x: "3%", y: "45%"}],
+			["preparation", {width: "10%", height: "10%", x: "3%", y: "65%"}]
 		])
 	}
 
@@ -172,27 +172,36 @@ class Player {
 		const self = this;
 
 		self.timeline.eventCallback("onUpdate", this.updateProgress, ["{self}"], self);
+		self.timeline.add("init");
+
+		const maxEmployees = [...model.structures.keys()].filter(key => key.startsWith("employee")).length;
 
 		[...model.structures.keys()]
-		.filter(structure => !self.structures.has(structure))
 		.forEach(function(key) {
 			const structure = model.structures.get(key);
 
 			self.structures.add(key);
 
-			var img;
+			if (key === "advisor") {
+				self.fadeIn(image("employee", structure.name, self.boxes.get("advisor"), images.person));
+			} else if (key.startsWith("employee")) {
+				const id = (structure.id - 1);
+				const space = (70.0 - 10*maxEmployees) / (maxEmployees-1);
+				const y = 10 * (id+1) + (space*id);
+				const box = {width: '10%', height: '10%', x: '70%', y: `${y}%`};
 
-			if (key === "employee-0") {
-				img = image("employee", structure.name, self.boxes.get("employee-0"), images.person);
-			} else if (key.startsWith("employee-")) {
-				img = image("employee", structure.name, self.boxes.get("employee"), images.person);
-			}
-
-			if (img) {
-				self.canvas.appendChild(img);
-				self.timeline.to(img, 0.5, {attr: {opacity: 1}});
+				self.fadeIn(image("employee", structure.name, box, images.person));
 			}
 		});
+
+		['research', 'meeting', 'preparation'].forEach(
+			activity => self.fadeIn(image('activity', activity, self.boxes.get(activity), images[activity])));
+	}
+
+	fadeIn(img) {
+		const self = this;
+		self.canvas.appendChild(img);
+		self.timeline.to(img, 0.5, {attr: {opacity: 1}}, "init");
 	}
 
 	schedule(model, event) {
@@ -200,7 +209,41 @@ class Player {
 
 		if (event.interaction.name == "communication") {
 			const senderId = event.assignment.get("sender");
-			const forward = (senderId == "employee-0");
+			const receiverId = event.assignment.get("receiver");
+			
+			const sender = model.structures.get(senderId);
+			const receiver = model.structures.get(receiverId);
+
+			const senderSVG = $(`#${senderId}`)[0];
+			const receiverSVG = $(`#${receiverId}`)[0];
+
+			const start = {
+				x: senderSVG.x.baseVal.value + senderSVG.width.baseVal.value / 2,
+				y: senderSVG.y.baseVal.value + senderSVG.height.baseVal.value * 0.1,
+				width: '5%',
+				height: '5%'
+			};
+
+			const end = {
+				x: receiverSVG.x.baseVal.value + receiverSVG.width.baseVal.value / 2,
+				y: receiverSVG.y.baseVal.value + receiverSVG.height.baseVal.value * 0.1,
+				width: '5%',
+				height: '5%'
+			};
+
+			const img = image('communication', 'communication', start, images.communication);
+			self.timeline.call(function () {
+				document.getElementById("canvas").appendChild(img);
+			})
+			.to(img, 0.1, {attr: {opacity: 1}})
+			.to(img, 0.5, {attr: end})
+			.to(img, 0.1, {attr: {opacity: 0}})
+			.call(function () {
+				$('#communication').remove();
+			})
+			.to($(`#${receiverId}_text`), 0.5, {text:{value:`${receiver.communications}`}});			
+
+			/*const forward = (senderId == "advisor");
 
 			const obj = event.assignment.get("receiver");
 			const count = model.structures.get(obj).communications;
@@ -219,7 +262,7 @@ class Player {
 				//const text = $(`#${obj}_text`)[0];
 				//text.textContent = `${count}`;
 			})
-			.to($(`#${obj}_text`), 0.5, {text:{value:`${count}`}});
+			.to($(`#${obj}_text`), 0.5, {text:{value:`${count}`}});*/
 		}
 	}
 
