@@ -8,7 +8,7 @@ class Player {
 			["employee", {width: 200, height: 200, x: 1200, y: 300}],
 			["communication-forward", {width: 50, height: 50, x: 775, y: 250}],
 			["communication-backward", {width: 50, height: 50, x: 1275, y: 250}],
-			["button", {width: "5%", height: "5%", x: "5%", y: "90%"}]
+			["button", {width: "5%", height: "5%", x: "3%", y: "90%"}]
 		])
 	}
 
@@ -80,19 +80,54 @@ class Player {
 
 	pauseButton() {
 		const pause = image("playerButton", "pause", this.boxes.get("button"), images.pause);
-		pause.addEventListener("click", event => this.pauseEvents(event));
+
+		const clickable = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		clickable.setAttribute('id', 'pause_clickable');
+		clickable.setAttribute('width', '100%');
+		clickable.setAttribute('height', '100%');
+		clickable.setAttribute('fill', 'none');
+		clickable.setAttribute('pointer-events', 'visible');
+		clickable.addEventListener("click", event => this.pauseEvents(event));
+
+		pause.appendChild(clickable);
 		return pause;
 	}
 
 	slider() {
+		const sliderGroup = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		sliderGroup.setAttribute('id', 'slider');
+		sliderGroup.setAttribute('x', '10%');
+		sliderGroup.setAttribute('width', '80%');
+		sliderGroup.setAttribute('y', '90%');
+		sliderGroup.setAttribute('height', '5%');
+		
+
+		const clickable = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		clickable.setAttribute('id', 'slider_clickable');
+		clickable.setAttribute('width', '100%');
+		clickable.setAttribute('height', '100%');
+		clickable.setAttribute('fill', 'none');
+		clickable.setAttribute('pointer-events', 'visible');
+		clickable.addEventListener("click", this.sliderEvents.bind(this));
+
 		const slider = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-		slider.setAttribute('x', '10%');
-		slider.setAttribute('width', '80%');
-		slider.setAttribute('y', '92%');
-		slider.setAttribute('height', '10');
+		slider.setAttribute('width', '100%');
+		slider.setAttribute('y', '40%');
+		slider.setAttribute('height', '20%');
 		slider.setAttribute('fill', '#cccccc');
 
-		return slider;
+		const progress = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		progress.setAttribute('id', 'progress');
+		progress.setAttribute('width', '0%');
+		progress.setAttribute('y', '40%');
+		progress.setAttribute('height', '20%');
+		progress.setAttribute('fill', 'black');
+
+		sliderGroup.appendChild(clickable);
+		sliderGroup.appendChild(slider);
+		sliderGroup.appendChild(progress);
+
+		return sliderGroup;
 	}
 
 	playEvents(event) {
@@ -115,8 +150,28 @@ class Player {
 		this.timeline.paused(!this.timeline.paused());
 	}
 
+	sliderEvents(event) {
+		const slider = $('#slider')[0];
+		const point = slider.createSVGPoint();
+		point.x = event.clientX;
+		point.y = event.clientY;
+
+		const x = point.matrixTransform(slider.getScreenCTM().inverse()).x;
+		const width = slider.width.baseVal.value;
+
+		const percent = Math.round(x * 100.0 / width);
+		this.timeline.progress(percent / 100);
+	}
+
+	updateProgress() {
+		const percent = Math.round(this.timeline.progress() * 100);
+		$('#progress')[0].setAttribute("width", `${percent}%`);
+	}
+
 	init(model) {
 		const self = this;
+
+		self.timeline.eventCallback("onUpdate", this.updateProgress, ["{self}"], self);
 
 		[...model.structures.keys()]
 		.filter(structure => !self.structures.has(structure))
@@ -141,6 +196,8 @@ class Player {
 	}
 
 	schedule(model, event) {
+		const self = this;
+
 		if (event.interaction.name == "communication") {
 			const senderId = event.assignment.get("sender");
 			const forward = (senderId == "employee-0");
@@ -151,7 +208,7 @@ class Player {
 			const box = this.boxes.get(forward ? "communication-forward" : "communication-backward");
 			const img = image(`communication`, "communication", box, images.communication);
 
-			this.timeline.call(function () {
+			self.timeline.call(function () {
 				document.getElementById("canvas").appendChild(img);
 			})
 			.to(img, 0.5, {attr: {opacity: 1}})
@@ -159,9 +216,10 @@ class Player {
 			.to(img, 0.5, {attr: {opacity: 0}})
 			.call(function () {
 				$('#communication').remove();
-				const text = $(`#${obj}_text`)[0];
-				text.textContent = `${count}`;
-			});
+				//const text = $(`#${obj}_text`)[0];
+				//text.textContent = `${count}`;
+			})
+			.to($(`#${obj}_text`), 0.5, {text:{value:`${count}`}});
 		}
 	}
 
@@ -169,6 +227,11 @@ class Player {
 		const self = this;
 
 		self.timeline
+		.call(function() {
+			$('#slider_clickable').remove();
+			self.timeline.eventCallback("onUpdate", null);
+			$('#progress')[0].setAttribute("width", '100%');
+		})
 		.to($('#pause'), 0.5, {attr: {opacity: 0}})
 		.call(function() {
 			$('#pause').remove();
