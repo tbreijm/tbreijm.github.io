@@ -7,9 +7,11 @@ class Player {
 		this.boxes = new Map([
 			["advisor", {width: '20%', height: '20%', x: '40%', y: '40%'}],
 			["button", {width: "5%", height: "5%", x: "3%", y: "90%"}],
-			["research", {width: "10%", height: "10%", x: "3%", y: "25%"}],
-			["meeting", {width: "10%", height: "10%", x: "3%", y: "45%"}],
-			["preparation", {width: "10%", height: "10%", x: "3%", y: "65%"}]
+			["research", {width: "10%", height: "10%", x: "10%", y: "25%"}],
+			["meeting", {width: "10%", height: "10%", x: "10%", y: "45%"}],
+			["preparation", {width: "10%", height: "10%", x: "10%", y: "65%"}],
+			["cityHall", {width: "10%", height: "10%", x: "45%", y: "20%"}],
+			["office", {width: "10%", height: "10%", x: "45%", y: "70%"}]
 		])
 	}
 
@@ -187,24 +189,16 @@ class Player {
 				self.fadeIn(image("employee", structure.name, self.boxes.get("advisor"), images.person));
 			} else if (key.startsWith("employee")) {
 				const id = (structure.id - 1);
-				const space = (70.0 - 10*maxEmployees) / (maxEmployees-1);
-				const y = 10 * (id+1) + (space*id);
-				const box = {width: '10%', height: '10%', x: '70%', y: `${y}%`};
+				const space = (50.0 - 6*maxEmployees) / (maxEmployees-1);
+				const y = 20 + 6 * (id+1) + (space*id);
+				const box = {width: '5%', height: '5%', x: '80%', y: `${y}%`};
 
 				self.fadeIn(image("employee", structure.name, box, images.person));
-			} else if (key === "office") {
-				const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-				rect.setAttribute('id', 'office');
-				rect.setAttribute('x', `${structure.left}%`);
-				rect.setAttribute('y', `${structure.top}%`);
-				rect.setAttribute('width', `${structure.right - structure.left}%`);
-				rect.setAttribute('height', `${structure.bottom - structure.top}%`);
-				rect.setAttribute('fill', 'none');
-				rect.setAttribute('stroke', 'black');
-				rect.setAttribute('opacity', 0);
-				self.fadeIn(rect);
 			}
 		});
+
+		self.fadeIn(image("cityHall", 'cityHall', self.boxes.get("cityHall"), images.cityHall));
+		self.fadeIn(image("office", 'office', self.boxes.get("office"), images.office));
 
 		['research', 'meeting', 'preparation'].forEach(
 			activity => self.fadeIn(image('activity', activity, self.boxes.get(activity), images[activity])));

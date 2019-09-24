@@ -1,7 +1,7 @@
 {
 	"structures": [
 		{ "name": "advisor", "id": 0, "communications": 0, "hours": 8, "distribution": [], "x": 40, "y": 40 },
-		{ "name": "office", "left": 30, "right": 60, "top": 30, "bottom": 70 },
+		{ "name": "office", "left": 30, "right": 70, "top": 30, "bottom": 70 },
 		{ "name": "employee-0", "id": 1, "communications": 0},
 		{ "name": "employee-1", "id": 2, "communications": 0},
 		{ "name": "employee-2", "id": 3, "communications": 0},
@@ -9,7 +9,7 @@
 		{ "name": "employee-4", "id": 5, "communications": 0},
 		{ "name": "experiment", "p": 0.8, "limit": 3 },
 		{ "name": "workload", "activities": ["research", "meeting", "preparation"], "max": 5, "count": 0 },
-		{ "name": "walks", "attributes": {"dx": "(0.5-Math.random())*8", "dy": "(0.5-Math.random())*8"}, "structureName": "walk", "max": 30, "count": 0 }
+		{ "name": "walks", "attributes": {"dx": "(0.5-Math.random())*4", "dy": "(0.5-Math.random())*4"}, "structureName": "walk", "max": 30, "count": 0 }
 	],
 	"roles": [
 		{
@@ -85,7 +85,7 @@
 		{
 			"name": "log",
 			"roles": ["schedule", "worker"],
-			"action": "const v = schedule.activities.map(a => Math.random()); v[0] = 1; v.sort((a,b) => a-b); worker.distribution = schedule.activities.map((a,i) => [a, worker.hours*((i == 0) ? v[i] : v[i] - v[i-1])]);schedule.count += 1;"
+			"action": "const v = schedule.activities.map(a => Math.random()); v[0] = 1; v.sort((a,b) => a-b); worker.distribution = schedule.activities.map((a,i) => [a, ((i == 0) ? v[i] : v[i] - v[i-1])]);schedule.count += 1;"
 		},
 		{
 			"name": "move",
