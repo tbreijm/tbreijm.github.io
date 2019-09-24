@@ -1,85 +1,150 @@
 {
 	"structures": [
-		{ "name": "gate", "maxValue": 25 },
-		{ "name": "autowalk", "start": 1, "end": 10, "speed": 1},
-		{ "name": "travellers", "attributes": { "location": 0, "speed": 2 }, "structureName": "traveller", "limit": 5 }
+		{ "name": "advisor", "id": 0, "communications": 0, "hours": 8, "distribution": [], "x": 40, "y": 40 },
+		{ "name": "office", "left": 30, "right": 70, "top": 30, "bottom": 70 },
+		{ "name": "employee-0", "id": 1, "communications": 0},
+		{ "name": "employee-1", "id": 2, "communications": 0},
+		{ "name": "employee-2", "id": 3, "communications": 0},
+		{ "name": "employee-3", "id": 4, "communications": 0},
+		{ "name": "employee-4", "id": 5, "communications": 0},
+		{ "name": "experiment", "p": 0.8, "limit": 3 },
+		{ "name": "workload", "activities": ["research", "meeting", "preparation"], "max": 5, "count": 0 },
+		{ "name": "walks", "attributes": {"dx": "(0.5-Math.random())*4", "dy": "(0.5-Math.random())*4"}, "structureName": "walk", "max": 30, "count": 0 }
 	],
 	"roles": [
 		{
+			"name": "sender", "attributes": [
+				{ "name": "id" }
+			]
+		},
+		{
+			"name": "receiver", "attributes": [
+				{ "name": "id" },
+				{ "name": "communications", "writable": true }
+			]
+		},
+		{
+			"name": "constants", "attributes": [
+				{ "name": "p" }
+			]
+		},
+		{
 			"name": "limiter", "attributes": [
-				{ "name": "maxValue"}
+				{ "name": "limit" }
 			]
 		},
-		{ 
-			"name": "mover", "attributes": [
-				{ "name": "speed" },
-				{ "name": "start" },
-				{ "name": "end" }
+		{
+			"name": "worker", "attributes": [
+				{ "name": "id" },
+				{ "name": "hours"},
+				{ "name": "distribution", "writable": true}
 			]
 		},
-		{ 
+		{
+			"name": "schedule", "attributes": [
+				{ "name": "activities" },
+				{ "name": "max"},
+				{ "name": "count", "writable": true }
+			]
+		},
+		{
 			"name": "movable", "attributes": [
-				{ "name": "speed"},
-				{ "name": "location", "writable": true}
+				{ "name": "x", "writable": true },
+				{ "name": "y", "writable": true }
+			]
+		},
+		{
+			"name": "force", "attributes": [
+				{ "name": "dx" },
+				{ "name": "dy" }
+			]
+		},
+		{
+			"name": "bounds", "attributes": [
+				{ "name": "left" },
+				{ "name": "right" },
+				{ "name": "top" },
+				{ "name": "bottom" }
 			]
 		},
 		{
 			"name": "generator", "attributes": [
 				{ "name": "structureName"},
 				{ "name": "attributes"},
-				{ "name": "limit"}
+				{ "name": "max"},
+				{ "name": "count", "writable": true }
 			]
 		}
 	],
 	"behaviours": [
 		{
-			"name": "move",
-			"roles": ["mover", "movable"],
-			"action": "movable.location += mover.speed"
+			"name": "send",
+			"roles": ["sender", "receiver"],
+			"action": "receiver.communications += 1"
 		},
 		{
-			"name": "self-move",
-			"roles": ["movable"],
-			"action": "movable.location += movable.speed"
+			"name": "log",
+			"roles": ["schedule", "worker"],
+			"action": "const v = schedule.activities.map(a => Math.random()); v[0] = 1; v.sort((a,b) => a-b); worker.distribution = schedule.activities.map((a,i) => [a, ((i == 0) ? v[i] : v[i] - v[i-1])]);schedule.count += 1;"
+		},
+		{
+			"name": "move",
+			"roles": ["movable", "force"],
+			"action": "movable.x += force.dx; movable.y += force.dy; force.deactivated = true;"
 		},
 		{
 			"name": "generate",
 			"roles": ["generator"],
-			"action": "create(generator.structureName, generator.attributes)"
+			"action": "create(generator.structureName, generator.attributes); generator.count += 1"
 		}
 	],
 	"constraints": [
 		{
-			"name": "on",
-			"roles": ["mover", "movable"],
-			"condition": "mover.start <= movable.location && movable.location < mover.end"
+			"name": "can send",
+			"roles": ["sender", "receiver", "constants", "limiter"],
+			"condition": "(Math.random() < constants.p) ? (receiver.communications < limiter.limit) : false"
 		},
 		{
-			"name": "move until",
-			"roles": ["movable", "limiter"],
-			"condition": "movable.location < limiter.maxValue"
+			"name": "no self comms",
+			"roles": ["sender", "receiver"],
+			"condition": "sender.id != receiver.id"
+		},
+		{
+			"name": "within bounds",
+			"roles": ["movable", "force", "bounds"],
+			"condition": "(bounds.left < (movable.x + force.dx) && (movable.x + force.dx) < bounds.right) && (bounds.top < (movable.y + force.dy) && (movable.y + force.dy) < bounds.bottom)"
 		},
 		{
 			"name": "generate until",
 			"roles": ["generator"],
-			"condition": "count(generator.structureName) < generator.limit"
+			"condition": "generator.count < generator.max"
+		},
+		{
+			"name": "log until",
+			"roles": ["schedule"],
+			"condition": "schedule.count < schedule.max"
 		}
 	],
 	"interactions": [
 		{
-			"name": "moving",
-			"constraints": ["on", "move until"],
-			"behaviours": ["move"]
-		},
-		{
-			"name": "self-movement",
-			"constraints": ["move until"],
-			"behaviours": ["self-move"]
+			"name": "work",
+			"constraints": ["log until"],
+			"behaviours": ["log"]
 		},
 		{
 			"name": "generating",
 			"constraints": ["generate until"],
 			"behaviours": ["generate"]
+		},
+		{
+			"name": "movement",
+			"constraints": ["within bounds"],
+			"behaviours": ["move"]
+		},
+		{
+			"name": "communication",
+			"constraints": ["no self comms", "can send"],
+			"behaviours": ["send"]
 		}
 	]
 }
