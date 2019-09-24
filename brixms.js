@@ -3,18 +3,15 @@ function simulate(definition) {
 	player.init(model);
 
 	const functions = {
-		count: function(name) {
-			return [...model.structures.keys()].filter(k => k.startsWith(name)).length
-		},
 		create: function(name, attributes) {
 			const count = [...model.structures.keys()].filter(k => k.startsWith(name)).length;
 			const structureName = `${name}-${count}`;
 			const structure = deepCopy(attributes);
+			
+			Object.keys(structure).forEach(key => structure[key] = new Function(`return ${structure[key]};`)());
+
 			structure["name"] = structureName;
 			model.structures.set(structureName, structure);
-		},
-		remove: function(name) {
-			model.structures.delete(name);
 		}
 	};
 
@@ -81,7 +78,7 @@ function detect(model, functions) {
 		return events.filter(event => 
 			event.interaction.constraints.every(function(c) {
 				const constraint = model.constraints.get(c);
-				return new Function("{count, create, remove}", ...constraint.roles, `return ${constraint.condition};`)(
+				return new Function("{create}", ...constraint.roles, `return ${constraint.condition};`)(
 					functions, ... constraint.roles.map(role => 
 						applyImmutableRole(model.structures.get(event.assignment.get(role)), 
 							model.roles.get(role))
@@ -106,7 +103,7 @@ function execute(model, functions, event) {
 			model.structures.get(event.assignment.get(role)), 
 			model.roles.get(role)));
 
-		new Function("{count, create, remove}", ...behaviour.roles, `${behaviour.action};`)(functions, ... values)
+		new Function("{create}", ...behaviour.roles, `${behaviour.action};`)(functions, ... values)
 
 		behaviour.roles.forEach(function(role, index){
 			const value = values[index];

@@ -2,6 +2,7 @@ class Player {
 	constructor() {
 		this.timeline = new TimelineMax();
 		this.structures = new Set();
+		this.scenes = new Scenes();
 
 		this.boxes = new Map([
 			["advisor", {width: '20%', height: '20%', x: '40%', y: '40%'}],
@@ -100,7 +101,6 @@ class Player {
 		sliderGroup.setAttribute('width', '80%');
 		sliderGroup.setAttribute('y', '90%');
 		sliderGroup.setAttribute('height', '5%');
-		
 
 		const clickable = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 		clickable.setAttribute('id', 'slider_clickable');
@@ -142,6 +142,7 @@ class Player {
 			self.canvas.appendChild(self.slider());
 			self.timeline.add("loaded");
 			self.timeline.play("loaded");
+			self.scenes.clear();
 			simulate(data);
 		});
 	}
@@ -191,6 +192,17 @@ class Player {
 				const box = {width: '10%', height: '10%', x: '70%', y: `${y}%`};
 
 				self.fadeIn(image("employee", structure.name, box, images.person));
+			} else if (key === "office") {
+				const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+				rect.setAttribute('id', 'office');
+				rect.setAttribute('x', `${structure.left}%`);
+				rect.setAttribute('y', `${structure.top}%`);
+				rect.setAttribute('width', `${structure.right - structure.left}%`);
+				rect.setAttribute('height', `${structure.bottom - structure.top}%`);
+				rect.setAttribute('fill', 'none');
+				rect.setAttribute('stroke', 'black');
+				rect.setAttribute('opacity', 0);
+				self.fadeIn(rect);
 			}
 		});
 
@@ -198,76 +210,10 @@ class Player {
 			activity => self.fadeIn(image('activity', activity, self.boxes.get(activity), images[activity])));
 	}
 
-	fadeIn(img) {
-		const self = this;
-		self.canvas.appendChild(img);
-		self.timeline.to(img, 0.5, {attr: {opacity: 1}}, "init");
-	}
-
-	schedule(model, event) {
-		const self = this;
-
-		if (event.interaction.name == "communication") {
-			const senderId = event.assignment.get("sender");
-			const receiverId = event.assignment.get("receiver");
-			
-			const sender = model.structures.get(senderId);
-			const receiver = model.structures.get(receiverId);
-
-			const senderSVG = $(`#${senderId}`)[0];
-			const receiverSVG = $(`#${receiverId}`)[0];
-
-			const start = {
-				x: senderSVG.x.baseVal.value + senderSVG.width.baseVal.value / 2,
-				y: senderSVG.y.baseVal.value + senderSVG.height.baseVal.value * 0.1,
-				width: '5%',
-				height: '5%'
-			};
-
-			const end = {
-				x: receiverSVG.x.baseVal.value + receiverSVG.width.baseVal.value / 2,
-				y: receiverSVG.y.baseVal.value + receiverSVG.height.baseVal.value * 0.1,
-				width: '5%',
-				height: '5%'
-			};
-
-			const img = image('communication', 'communication', start, images.communication);
-			self.timeline.call(function () {
-				document.getElementById("canvas").appendChild(img);
-			})
-			.to(img, 0.1, {attr: {opacity: 1}})
-			.to(img, 0.5, {attr: end})
-			.to(img, 0.1, {attr: {opacity: 0}})
-			.call(function () {
-				$('#communication').remove();
-			})
-			.to($(`#${receiverId}_text`), 0.5, {text:{value:`${receiver.communications}`}});			
-
-			/*const forward = (senderId == "advisor");
-
-			const obj = event.assignment.get("receiver");
-			const count = model.structures.get(obj).communications;
-
-			const box = this.boxes.get(forward ? "communication-forward" : "communication-backward");
-			const img = image(`communication`, "communication", box, images.communication);
-
-			self.timeline.call(function () {
-				document.getElementById("canvas").appendChild(img);
-			})
-			.to(img, 0.5, {attr: {opacity: 1}})
-			.to(img, 0.5, {attr: this.boxes.get(!forward ? "communication-forward" : "communication-backward")})
-			.to(img, 0.5, {attr: {opacity: 0}})
-			.call(function () {
-				$('#communication').remove();
-				//const text = $(`#${obj}_text`)[0];
-				//text.textContent = `${count}`;
-			})
-			.to($(`#${obj}_text`), 0.5, {text:{value:`${count}`}});*/
-		}
-	}
-
 	stop() {
 		const self = this;
+
+		self.scenes.timelines().forEach(tl => self.timeline.add(tl, "loaded"));
 
 		self.timeline
 		.call(function() {
@@ -282,5 +228,27 @@ class Player {
 			self.canvas.appendChild(play);
 			self.timeline.to(play, 0.5, {attr: {opacity: 1}})
 		});
+	}
+
+	fadeIn(img) {
+		const self = this;
+		self.canvas.appendChild(img);
+		self.timeline.to(img, 0.5, {attr: {opacity: 1}}, "init");
+	}
+
+	schedule(model, event) {
+		switch (event.interaction.name) {
+			case "communication":
+				this.scenes.communication(model, event);
+				break;
+			case "movement":
+				this.scenes.movement(model, event);
+				break;
+			case "work":
+				this.scenes.work(model, event);
+			default:
+				//console.log(event.interaction.name);
+				break;
+		}
 	}
 }
