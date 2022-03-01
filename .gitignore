@@ -1,0 +1,9 @@
+node_modules
+package-lock.json
+coverage
+dist/**/*
+.nyc_output
+**/*.ds_store
+.scannerwork
+.idea/**/*
+xunit.xml

@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es2021",
+		"declaration": true,
+		"sourceMap": true,
+		"strict": true,
+		"importHelpers": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true,
+		"lib": [
+			"es2021",
+		],
+		"baseUrl": ".",
+		"outDir": "./dist"
+	},
+	"include": [
+		"src/**/*.ts"
+	],
+	"exclude": [
+		"node_modules",
+		"tests",
+	]
+}
