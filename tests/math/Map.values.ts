@@ -1,0 +1,5 @@
+export const emptyMap = (): Map<string, number> => new Map<string, number>()
+export const nonEmptyMap3A = (): Map<string, number> => new Map<string, number>([['A',4],['B',2],['C',3]])
+export const nonEmptyMap3 = (): Map<string, number> => new Map<string, number>([['A',1],['B',2],['C',3]])
+export const nonEmptyMap4 = (): Map<string, number> => new Map<string, number>([['A',1],['B',2],['C',3],['D',4]])
+export const nonEmptyMap5 = (): Map<string, number> => new Map<string, number>([['A',1],['B',2],['C',3],['D',4],['E',5]])

@@ -183,6 +183,20 @@ describe('Equals', () => {
 		expect(result).to.be.true
 	})
 
+	it('should return true when both values are the same Set', () => {
+		const value1 = new Set<number>([1,2,3])
+		const value2 = new Set<number>([1,2,3])
+		const result = equal(value1, value2)
+		expect(result).to.be.true
+	})
+
+	it('should return true when both values are the same Set with different orders', () => {
+		const value1 = new Set<number>([1,2,3])
+		const value2 = new Set<number>([2,1,3])
+		const result = equal(value1, value2)
+		expect(result).to.be.true
+	})
+
 	it('should return true when both values are empty Maps', () => {
 		const value1 = new Map<never, never>()
 		const value2 = new Map<never, never>()

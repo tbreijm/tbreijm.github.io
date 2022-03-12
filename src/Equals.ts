@@ -4,7 +4,7 @@ const arrayEqual = <T>(array1: T[], array2: T[]): boolean =>
 	array1.length === array2.length && array1.every((_, index) => equal(_, array2[index]))
 
 const setEqual = <T>(set1: Set<T>, set2: Set<T>): boolean =>
-	arrayEqual([...set1], [...set2])
+	arrayEqual([...set1].sort(), [...set2].sort())
 
 const mapEqual = <T, U>(map1: Map<T, U>, map2: Map<T, U>): boolean => {
 	const mapKeys1 = [...map1.keys()].sort()
@@ -66,3 +66,6 @@ export const equal = (...entities: any[]): boolean => {
 	const [head, ...tail] = entities
 	return tail.every(_ => equals(head, _))
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const notEqual = (...entities: any[]): boolean => !equal(...entities)

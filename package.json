@@ -13,7 +13,8 @@
 		"test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register -r tsconfig-paths/register 'tests/**/*.test.ts'"
 	},
 	"dependencies": {
-		"rxjs": "7.5.4"
+		"mathjs": "10.4.0",
+		"rxjs": "7.5.5"
 	},
 	"devDependencies": {
 		"@types/chai": "4.3.0",
