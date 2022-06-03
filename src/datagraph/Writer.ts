@@ -43,14 +43,16 @@ export default class Writer {
 		return result
 	}
 
-	create<M extends ModelProperties>(type: ModelType<M>, properties: M): string | undefined {
+	create<M extends ModelProperties>(type: ModelType<M>, properties: M, propagate: boolean = true): string | undefined {
 		const prefix = this.manifest.modelIdPrefix(type)
 		const result = this.graph.create<M>(type, prefix, properties)
 
-		this.changes.next({
-			type: ChangeType.CREATE,
-			data: { newModelId: result },
-		})
+		if (propagate) {
+			this.changes.next({
+				type: ChangeType.CREATE,
+				data: { newModelId: result },
+			})
+		}
 
 		return result
 	}
@@ -193,12 +195,12 @@ export default class Writer {
 		return new Set()
 	}
 
-	update<M extends ModelProperties>(modelOrId: ModelOrId<M>, values: Partial<M>): boolean {
+	update<M extends ModelProperties>(modelOrId: ModelOrId<M>, values: Partial<M>, propagate: boolean = true): boolean {
 		const modelId = sanitise(modelOrId)
 		if (modelId === undefined) return false
 
 		const result = this.graph.update<M>(modelId, values)
-		if (result) {
+		if (result && propagate) {
 			this.changes.next({
 				type: ChangeType.UPDATE,
 				data: { modelId, values },

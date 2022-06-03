@@ -1,7 +1,7 @@
 import {debounceTime, Subject, takeUntil} from 'rxjs'
 import {Simulation} from './Simulation'
 
-const simulator = (simulation: Simulation, completionTime: number) => {
+const simulator = (simulation: Simulation, completionTime: number,) => {
 	const graph = simulation.initialState
 	const stop: Subject<boolean> = new Subject<boolean>()
 

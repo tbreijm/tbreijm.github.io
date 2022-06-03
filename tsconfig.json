@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es2021",
+		"module": "commonJS",
+		"target": "esnext",
 		"declaration": true,
 		"sourceMap": true,
 		"strict": true,
