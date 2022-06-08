@@ -1,6 +1,6 @@
 # BrixMS
 
-![BrixMS](/BrixMS.png)
+![BrixMS](https://github.com/tbreijm/tbreijm.github.io/blob/master/BrixMS.png)
 
 Building Simulation Models with Context Independent Brixs.
 
